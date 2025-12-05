@@ -11,17 +11,27 @@ import (
 var tpl = template.Must(template.New("index").Parse(indexHTML))
 
 type UserInfo struct {
-	IP           string   `json:"ip"`
-	UserAgent    string   `json:"user_agent"`
-	Languages    []string `json:"languages"`
-	Platform     string   `json:"platform"`
-	ScreenWidth  int      `json:"screen_width"`
-	ScreenHeight int      `json:"screen_height"`
-	ColorDepth   int      `json:"color_depth"`
-	Timezone     string   `json:"timezone"`
-	Cookies      string   `json:"cookies_enabled"`
-	Online       bool     `json:"online"`
-	Referrer     string   `json:"referrer"`
+	IP                  string   `json:"ip"`
+	UserAgent           string   `json:"user_agent"`
+	Languages           []string `json:"languages"`
+	Platform            string   `json:"platform"`
+	ScreenWidth         int      `json:"screen_width"`
+	ScreenHeight        int      `json:"screen_height"`
+	ColorDepth          int      `json:"color_depth"`
+	Timezone            string   `json:"timezone"`
+	Cookies             string   `json:"cookies_enabled"`
+	Online              bool     `json:"online"`
+	Referrer            string   `json:"referrer"`
+	HardwareConcurrency int      `json:"hardware_concurrency"`
+	DeviceMemory        float64  `json:"device_memory"`
+	MaxTouchPoints      int      `json:"max_touch_points"`
+	AppVersion          string   `json:"app_version"`
+	CPUClass            string   `json:"cpu_class"`
+	DoNotTrack          string   `json:"do_not_track"`
+	JavaEnabled         bool     `json:"java_enabled"`
+	PixelRatio          float64  `json:"pixel_ratio"`
+	Vendor              string   `json:"vendor"`
+	ConnectionType      string   `json:"connection_type"`
 }
 
 var collectedData []UserInfo
@@ -54,14 +64,24 @@ func collectDataHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		Languages    []string `json:"languages"`
-		Platform     string   `json:"platform"`
-		ScreenWidth  int      `json:"screenWidth"`
-		ScreenHeight int      `json:"screenHeight"`
-		ColorDepth   int      `json:"colorDepth"`
-		Timezone     string   `json:"timezone"`
-		Cookies      string   `json:"cookies"`
-		Online       bool     `json:"online"`
+		Languages           []string `json:"languages"`
+		Platform            string   `json:"platform"`
+		ScreenWidth         int      `json:"screenWidth"`
+		ScreenHeight        int      `json:"screenHeight"`
+		ColorDepth          int      `json:"colorDepth"`
+		Timezone            string   `json:"timezone"`
+		Cookies             string   `json:"cookies"`
+		Online              bool     `json:"online"`
+		HardwareConcurrency int      `json:"hardwareConcurrency"`
+		DeviceMemory        float64  `json:"deviceMemory"`
+		MaxTouchPoints      int      `json:"maxTouchPoints"`
+		AppVersion          string   `json:"appVersion"`
+		CPUClass            string   `json:"cpuClass"`
+		DoNotTrack          string   `json:"doNotTrack"`
+		JavaEnabled         bool     `json:"javaEnabled"`
+		PixelRatio          float64  `json:"pixelRatio"`
+		Vendor              string   `json:"vendor"`
+		ConnectionType      string   `json:"connectionType"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
@@ -76,17 +96,27 @@ func collectDataHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userInfo := UserInfo{
-		IP:           ip,
-		UserAgent:    r.UserAgent(),
-		Languages:    data.Languages,
-		Platform:     data.Platform,
-		ScreenWidth:  data.ScreenWidth,
-		ScreenHeight: data.ScreenHeight,
-		ColorDepth:   data.ColorDepth,
-		Timezone:     data.Timezone,
-		Cookies:      data.Cookies,
-		Online:       data.Online,
-		Referrer:     r.Referer(),
+		IP:                  ip,
+		UserAgent:           r.UserAgent(),
+		Languages:           data.Languages,
+		Platform:            data.Platform,
+		ScreenWidth:         data.ScreenWidth,
+		ScreenHeight:        data.ScreenHeight,
+		ColorDepth:          data.ColorDepth,
+		Timezone:            data.Timezone,
+		Cookies:             data.Cookies,
+		Online:              data.Online,
+		Referrer:            r.Referer(),
+		HardwareConcurrency: data.HardwareConcurrency,
+		DeviceMemory:        data.DeviceMemory,
+		MaxTouchPoints:      data.MaxTouchPoints,
+		AppVersion:          data.AppVersion,
+		CPUClass:            data.CPUClass,
+		DoNotTrack:          data.DoNotTrack,
+		JavaEnabled:         data.JavaEnabled,
+		PixelRatio:          data.PixelRatio,
+		Vendor:              data.Vendor,
+		ConnectionType:      data.ConnectionType,
 	}
 
 	collectedData = append(collectedData, userInfo)
@@ -99,6 +129,16 @@ func collectDataHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Platform: %s\n", userInfo.Platform)
 	fmt.Printf("Screen: %dx%d\n", userInfo.ScreenWidth, userInfo.ScreenHeight)
 	fmt.Printf("Referrer: %s\n", userInfo.Referrer)
+	fmt.Printf("Hardware Concurrency: %d\n", userInfo.HardwareConcurrency)
+	fmt.Printf("Device Memory: %.1f GB\n", userInfo.DeviceMemory)
+	fmt.Printf("Max Touch Points: %d\n", userInfo.MaxTouchPoints)
+	fmt.Printf("App Version: %s\n", userInfo.AppVersion)
+	fmt.Printf("CPU Class: %s\n", userInfo.CPUClass)
+	fmt.Printf("Do Not Track: %s\n", userInfo.DoNotTrack)
+	fmt.Printf("Java Enabled: %t\n", userInfo.JavaEnabled)
+	fmt.Printf("Pixel Ratio: %.2f\n", userInfo.PixelRatio)
+	fmt.Printf("Vendor: %s\n", userInfo.Vendor)
+	fmt.Printf("ConnectionType: %s\n", userInfo.ConnectionType)
 	fmt.Printf("===========================\n")
 
 	w.WriteHeader(http.StatusOK)
@@ -166,7 +206,18 @@ const indexHTML = `
     colorDepth: screen.colorDepth,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     cookies: navigator.cookieEnabled ? "Enabled" : "Disabled",
-    online: navigator.onLine
+    online: navigator.onLine,
+    // 10 additional info fields
+    hardwareConcurrency: navigator.hardwareConcurrency || 0,
+    deviceMemory: navigator.deviceMemory || 0,
+    maxTouchPoints: navigator.maxTouchPoints || 0,
+    appVersion: navigator.appVersion || 'N/A',
+    cpuClass: navigator.cpuClass || 'N/A',
+    doNotTrack: navigator.doNotTrack || 'N/A',
+    javaEnabled: navigator.javaEnabled(),
+    pixelRatio: window.devicePixelRatio || 1,
+    vendor: navigator.vendor || 'N/A',
+    connectionType: navigator.connection ? navigator.connection.effectiveType : 'N/A'
   };
 
   // Send collected data to server
@@ -190,6 +241,17 @@ const indexHTML = `
     console.log('⏰ Timezone:', userData.timezone);
     console.log('🍪 Cookies:', userData.cookies);
     console.log('📶 Online:', userData.online);
+    console.log('-----------------------------------');
+    console.log('💻 Hardware Concurrency:', userData.hardwareConcurrency);
+    console.log('💾 Device Memory:', userData.deviceMemory, 'GB');
+    console.log('👆 Max Touch Points:', userData.maxTouchPoints);
+    console.log('📜 App Version:', userData.appVersion);
+    console.log('🧠 CPU Class:', userData.cpuClass);
+    console.log('🚫 Do Not Track:', userData.doNotTrack);
+    console.log('☕ Java Enabled:', userData.javaEnabled);
+    console.log('📏 Pixel Ratio:', userData.pixelRatio);
+    console.log('🏢 Vendor:', userData.vendor);
+    console.log('📡 Connection Type:', userData.connectionType);
     console.log('-----------------------------------');
     console.log('This is how some websites collect data without explicit consent.');
     console.log('Always check what information websites are accessing!');
